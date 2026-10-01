@@ -1,0 +1,65 @@
+# 构建并部署到 GitHub Pages
+#
+# 为什么用 Actions 而不是 gh-pages 分支：
+#   Pages 的 Actions 部署不需要把构建产物提交进仓库，
+#   dist/ 已被 .gitignore 排除，构建与部署各司其职。
+#
+# base 必须带 /windows-card/ 前缀，否则页面里的
+# /assets/*、/cats/*、/backgrounds/* 会全部 404。
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Pages 部署需要写权限；只授予必要的 contents 读取。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一分支连续推送时，取消上一次未完成的部署。
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 类型检查与单测
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: 构建
+        env:
+          # Pages 站点挂在 /<repo>/ 下，资源路径必须带这个前缀
+          BASE_PATH: /windows-card/
+        run: npm run build
+
+      - name: 上传 Pages 产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
