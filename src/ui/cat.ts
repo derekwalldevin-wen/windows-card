@@ -40,6 +40,14 @@ export function catById(id: string): CatEntry {
   return CATS.find((c) => c.id === id) ?? CATS[0] ?? { id: '', name: '', pose: '', file: '', aspect: 1 };
 }
 
+/**
+ * 站点基路径。
+ *
+ * 本机开发是 '/'，GitHub Pages 是 '/<repo>/'。
+ * 用 import.meta.env.BASE_URL 而不是写死 '/'，否则部署后贴图全部 404。
+ */
+const BASE = import.meta.env.BASE_URL;
+
 /** 猫脚锚点在容器内的屏幕坐标（由背景层用同一套几何算出） */
 export interface CatAnchor {
   x: number;
@@ -142,7 +150,8 @@ export function createCatArea(initialId: string = DEFAULT_CAT_ID): CatArea {
 
   function apply(entry: CatEntry): void {
     place = placementOf(entry.id);
-    img.src = `/${entry.file}`;
+    // 走 BASE_URL：Pages 部署在 /<repo>/ 下，写死 '/' 会 404
+    img.src = `${BASE}${entry.file}`;
     img.alt = `${entry.name}（${entry.pose}）`;
     root.dataset['cat'] = entry.id;
     root.dataset['catName'] = entry.name;
