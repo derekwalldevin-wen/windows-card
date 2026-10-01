@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "pages:sim": "node tools/serve-pages-sim.mjs dist 4180",
     "test": "node --test tests/evaluate.test.ts tests/session.test.ts"
   },
   "dependencies": {
