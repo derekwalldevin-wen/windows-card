@@ -1,0 +1,889 @@
+/* ============================================================
+   窗边牌局 · 全局基础
+   ============================================================ */
+
+:root {
+  --c-paper: #f4ecdc;
+  --c-paper-deep: #e6d9bf;
+  --c-paper-shade: #cdbda0;
+  --c-sage: #9aab8c;
+  --c-sage-deep: #74855f;
+  --c-sage-light: #b4c2a6;
+  --c-coral: #d9705a;
+  --c-coral-deep: #b35640;
+  --c-wood: #8a5a38;
+  --c-ink: #3f362b;
+  --c-ink-soft: #6d6152;
+  --c-gold: #b08d57;
+  --c-gold-bright: #e0b563;
+
+  --font-cn: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Source Han Sans SC', 'Noto Sans CJK SC', 'WenQuanYi Micro Hei', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #241b13;
+  font-family: var(--font-cn);
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+.app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #241b13;
+}
+
+.scene-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* ============================================================
+   静态背景层
+   —— 取代 Three.js 场景，不创建 WebGL 上下文、不跑渲染循环
+   —— 尺寸与偏移全部来自 main.ts 写入的 --bg-* 变量，
+      与猫咪落位共用同一套缩放，保证同步
+   ============================================================ */
+
+.bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  /* 背景加载失败时的兜底底色：暖木色，界面与卡牌仍完全可操作 */
+  background: linear-gradient(180deg, #e9dfc9 0%, #cdb99a 34%, #b99a72 100%);
+  pointer-events: none;
+}
+
+/* 等比缩放，绝不拉伸：宽由 --bg-w 给，高由 --bg-h 给 */
+.bg-img {
+  position: absolute;
+  display: block;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 图片没加载出来时不留纯黑空白，而是给出明确说明 */
+.bg-layer.is-failed {
+  background:
+    radial-gradient(120% 60% at 50% 18%, rgba(255, 250, 236, 0.5) 0%, rgba(255, 250, 236, 0) 70%),
+    linear-gradient(180deg, #e9dfc9 0%, #cdb99a 34%, #b99a72 100%);
+}
+
+.bg-fallback {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  max-width: 84%;
+  padding: calc(var(--u) * 3) calc(var(--u) * 4);
+  border-radius: var(--radius-panel);
+  background: rgba(58, 42, 28, 0.82);
+  border: 1px solid rgba(168, 132, 90, 0.6);
+  color: #fdf3e0;
+  font-size: var(--fs-small);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.bg-fallback p {
+  margin: 0;
+}
+
+.bg-fallback[hidden] {
+  display: none;
+}
+
+/* 舞台：竖屏手机铺满；宽屏收窄为居中 9:16 竖屏，构图与手机一致 */
+.stage {
+  --u: 4px;
+  --gap: 10px;
+  --pad-x: 20px;
+  --radius-card: 12px;
+  --radius-panel: 20px;
+  --fs-btn: 20px;
+  --fs-small: 12px;
+
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  max-width: 100%;
+  overflow: hidden;
+  flex: 0 0 auto;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.55);
+}
+
+@supports (height: 100dvh) {
+  .stage {
+    height: 100dvh;
+    width: min(100vw, 56.5dvh, 620px);
+  }
+}
+
+@supports not (height: 100dvh) {
+  .stage {
+    width: min(100vw, 56.5vh, 620px);
+  }
+}
+
+/* ============================================================
+   界面骨架
+   ============================================================ */
+
+.ui {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: max(calc(var(--pad-x) * 0.55), env(safe-area-inset-top, 0px)) var(--pad-x)
+    max(calc(var(--pad-x) * 0.55), env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+
+.zone {
+  flex: 0 0 auto;
+  position: relative;
+  min-height: 0;
+}
+
+.zone-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.zone-spacer {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ============================================================
+   顶部信息区：单行胶囊，只留 名称 / 练习模式 / 累计分数
+   —— 弃牌次数在按钮上、牌堆数在操作区标记里、种子不显示
+   ============================================================ */
+
+.zone-hud {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 2);
+  height: calc(var(--u) * 10.3);
+  padding: 0 calc(var(--u) * 3.2);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(246, 239, 225, 0.95) 0%, rgba(231, 220, 198, 0.93) 100%);
+  border: 1px solid rgba(168, 132, 90, 0.55);
+  box-shadow:
+    0 calc(var(--u) * 0.5) calc(var(--u) * 1.6) rgba(58, 40, 24, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.hud-title {
+  flex: 0 0 auto;
+  font-size: calc(var(--u) * 3.5);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--c-ink);
+  white-space: nowrap;
+}
+
+.hud-badge {
+  flex: 0 0 auto;
+  padding: calc(var(--u) * 0.45) calc(var(--u) * 2);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e6d3a6 0%, #cfae74 100%);
+  border: 1px solid rgba(168, 132, 90, 0.6);
+  color: #4a3a22;
+  font-size: calc(var(--u) * 2.4);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.hud-sep {
+  flex: 0 0 auto;
+  width: 1px;
+  height: calc(var(--u) * 2.8);
+  background: rgba(168, 132, 90, 0.65);
+}
+
+.hud-item {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--u) * 0.6);
+  min-width: 0;
+}
+
+.hud-item-end {
+  margin-left: auto;
+}
+
+.hud-label {
+  font-size: calc(var(--u) * 2.5);
+  color: var(--c-ink-soft);
+  white-space: nowrap;
+}
+
+.hud-value {
+  font-size: calc(var(--u) * 3.5);
+  font-weight: 700;
+  color: var(--c-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   猫咪展示区
+   —— 角色 2D 透明贴图，脚底跟随背景图的猫脚锚点
+   —— 脸与耳朵不被 HUD / 计分牌 / 出牌区遮挡
+   ============================================================ */
+
+/* 高度由 main.ts 的 syncCat() 按背景锚点算出并写成内联 height，
+   这里不设固定高度，只保证极矮屏时有个下限 */
+.zone-cat {
+  flex: 0 0 auto;
+  min-height: calc(var(--u) * 12);
+  overflow: visible;
+}
+
+.cat-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* 接地影：与桌垫融合，刻意做淡，不遮下半身。
+   left / bottom / width 由 syncCat() 按背景锚点算出 */
+.cat-shadow {
+  position: absolute;
+  transform: translateX(-50%);
+  height: calc(var(--u) * 2.4);
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(84, 72, 42, 0.3) 0%,
+    rgba(84, 72, 42, 0.13) 60%,
+    rgba(84, 72, 42, 0) 100%
+  );
+  pointer-events: none;
+}
+
+/* 贴图定位：left / bottom / width / height 全由 syncCat() 按背景锚点算出 */
+.cat-img {
+  position: absolute;
+  display: block;
+  max-width: none;
+  transform-origin: bottom left;
+  filter: drop-shadow(0 calc(var(--u) * 0.4) calc(var(--u) * 0.9) rgba(70, 52, 32, 0.16));
+}
+
+/* 头 + 耳朵安全区（仅 guides 模式）：脸与耳朵在贴图上半部 */
+.cat-safe-zone {
+  position: absolute;
+  left: 50%;
+  top: 4%;
+  transform: translateX(-50%);
+  width: 62%;
+  height: 56%;
+  border: 1px dashed rgba(255, 90, 60, 0.9);
+  border-radius: calc(var(--u) * 4);
+  display: none;
+  pointer-events: none;
+}
+
+.zone-cat.is-missing .cat-frame::after {
+  content: '猫咪贴图加载失败，可继续选牌';
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translateX(-50%);
+  padding: calc(var(--u) * 1.6) calc(var(--u) * 3);
+  border-radius: 999px;
+  background: rgba(58, 42, 28, 0.8);
+  color: #fdf3e0;
+  font-size: var(--fs-small);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   出牌展示区：桌垫上的小计分牌 + 已选提示 + 上一手短暂展示
+   ============================================================ */
+
+.zone-play {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--u) * 1.4);
+}
+
+.play-plate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 0.3);
+  min-width: calc(var(--u) * 42);
+  height: calc(var(--u) * 11.8);
+  padding: 0 calc(var(--u) * 5);
+  border-radius: calc(var(--u) * 1.6);
+  background: linear-gradient(180deg, rgba(248, 242, 229, 0.96) 0%, rgba(232, 221, 199, 0.94) 100%);
+  border: 1px solid rgba(168, 132, 90, 0.55);
+  box-shadow:
+    0 calc(var(--u) * 0.4) calc(var(--u) * 1.1) rgba(52, 36, 22, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.play-plate-title {
+  font-size: calc(var(--u) * 3.2);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  color: var(--c-ink);
+  white-space: nowrap;
+}
+
+.play-plate-formula {
+  font-size: calc(var(--u) * 2.4);
+  line-height: 1.2;
+  color: var(--c-ink-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.play-pill {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 1.4);
+  height: calc(var(--u) * 6.2);
+  padding: 0 calc(var(--u) * 3.4);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(240, 232, 214, 0.94), rgba(226, 214, 188, 0.92));
+  border: 1px solid rgba(168, 132, 90, 0.5);
+}
+
+.play-pill-text {
+  font-size: calc(var(--u) * 2.4);
+  font-weight: 700;
+  color: var(--c-ink);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.play-legend {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.5);
+  flex: 0 0 auto;
+  font-size: calc(var(--u) * 2.1);
+  color: rgba(74, 65, 54, 0.8);
+}
+
+.play-legend .dot {
+  display: inline-block;
+  width: calc(var(--u) * 1.3);
+  height: calc(var(--u) * 1.3);
+  border-radius: 50%;
+  margin-left: calc(var(--u) * 0.8);
+}
+
+.play-legend .dot:first-child {
+  margin-left: 0;
+}
+
+/* 上一手出牌：横向小尺寸，牌面完整可读，不额外占竖向空间 */
+.play-cards {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: calc(var(--u) * 0.8);
+  min-height: 0;
+  flex-wrap: nowrap;
+}
+
+.play-cards .card {
+  width: calc(var(--u) * 6.4);
+  flex: 0 0 auto;
+  --t: 0.72;
+  pointer-events: none;
+}
+
+/* ============================================================
+   手牌 4+4（靠下对齐，整张牌即点击区）
+   ============================================================ */
+
+.zone-hand {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+}
+
+.hand-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  width: 100%;
+}
+
+.hand-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  width: 100%;
+  gap: var(--gap);
+}
+
+/* ============================================================
+   卡牌（DOM，程序绘制）
+   ============================================================ */
+
+.card {
+  /* 牌面字号随卡宽缩放：手牌为 1，出牌展示区的小牌下调 */
+  --t: 1;
+  position: relative;
+  display: block;
+  aspect-ratio: 5 / 7;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(168deg, #fdf7ea 0%, #f2e8d5 58%, #e6d9bf 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 calc(var(--u) * 0.35) calc(var(--u) * 0.9) rgba(46, 32, 20, 0.34),
+    0 calc(var(--u) * 0.9) calc(var(--u) * 1.6) rgba(46, 32, 20, 0.18);
+  color: var(--c-ink);
+  font-family: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  overflow: hidden;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    filter 140ms ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.hand-row .card {
+  width: 100%;
+  height: auto;
+}
+
+.card:disabled {
+  cursor: default;
+}
+
+/* 纸张纹理：极轻的斜向织纹 + 纸纹，避免塑料感 */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      115deg,
+      rgba(160, 138, 104, 0.05) 0 1px,
+      rgba(160, 138, 104, 0) 1px 3px
+    ),
+    radial-gradient(120% 80% at 20% 0%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 60%);
+  mix-blend-mode: multiply;
+  opacity: 0.75;
+}
+
+.card[data-suit='1'],
+.card[data-suit='2'] {
+  color: #c04a34;
+}
+
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.94;
+  z-index: 2;
+}
+
+.card-corner-tl {
+  top: 3.5%;
+  left: 5%;
+}
+
+.card-corner-br {
+  bottom: 3.5%;
+  right: 5%;
+  transform: rotate(180deg);
+}
+
+.card-rank {
+  font-size: calc(var(--u) * 4.4 * var(--t));
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.card-suit {
+  font-size: calc(var(--u) * 3.2 * var(--t));
+  font-style: normal;
+}
+
+.card-face {
+  position: absolute;
+  inset: 17% 15%;
+  z-index: 1;
+}
+
+.card-pip {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-style: normal;
+  font-size: calc(var(--u) * 3.6 * var(--t));
+  line-height: 1;
+}
+
+.card-pip.is-flipped {
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+.card-ace,
+.card-court {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2%;
+  line-height: 1;
+}
+
+.card-ace {
+  font-size: calc(var(--u) * 9 * var(--t));
+}
+
+.card-court-letter {
+  font-size: calc(var(--u) * 9.5 * var(--t));
+  font-weight: 800;
+}
+
+.card-court-suit {
+  font-style: normal;
+  font-size: calc(var(--u) * 5.4 * var(--t));
+}
+
+/* 选中：抬升 + 细绿边（不用强荧光） */
+.card[data-role='selected'] {
+  transform: translateY(calc(var(--u) * -1.4));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 0 0 calc(var(--u) * 0.4) var(--c-sage-deep),
+    0 calc(var(--u) * 1.4) calc(var(--u) * 2.2) rgba(40, 28, 16, 0.4);
+  filter: saturate(1.04) brightness(1.02);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--c-gold-bright);
+  outline-offset: 2px;
+}
+
+/* 计分牌 / 陪牌 角标 */
+.card.is-scoring::before,
+.card.is-kicker::before {
+  content: '';
+  position: absolute;
+  top: 4%;
+  right: 4%;
+  z-index: 3;
+  width: calc(var(--u) * 1.5 * var(--t));
+  height: calc(var(--u) * 1.5 * var(--t));
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+.card.is-scoring::before {
+  background: var(--c-gold-bright);
+}
+
+.card.is-kicker::before {
+  background: #9a9186;
+}
+
+.card-role-badge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  text-align: center;
+  font-size: calc(var(--u) * 2.1 * var(--t));
+  line-height: 1.7;
+  font-weight: 700;
+  color: #fff8e8;
+  background: rgba(74, 65, 54, 0.8);
+}
+
+.card[data-role='scoring'] {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 0 0 calc(var(--u) * 0.45) var(--c-gold),
+    0 calc(var(--u) * 0.5) calc(var(--u) * 1.2) rgba(46, 32, 20, 0.34);
+}
+
+.card[data-role='kicker'] {
+  filter: saturate(0.6) brightness(0.93);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 0 0 calc(var(--u) * 0.4) rgba(120, 108, 92, 0.75),
+    0 calc(var(--u) * 0.35) calc(var(--u) * 0.9) rgba(46, 32, 20, 0.3);
+}
+
+/* ============================================================
+   操作区：牌堆标记 + 弃牌 / 出牌（贴底）
+   ============================================================ */
+
+.zone-actions {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--gap) * 0.8);
+  pointer-events: auto;
+}
+
+/* 牌堆数：小标记，不与猫咪争空间 */
+.deck-marker {
+  flex: 0 0 auto;
+  height: calc(var(--u) * 6.4);
+  display: flex;
+  align-items: center;
+  padding: 0 calc(var(--u) * 2.2);
+  border-radius: 999px;
+  background: rgba(46, 34, 22, 0.66);
+  border: 1px solid rgba(246, 238, 218, 0.24);
+  font-size: calc(var(--u) * 2.2);
+  font-weight: 600;
+  color: #f6eeda;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.deck-marker[hidden] {
+  display: none;
+}
+
+.btn {
+  flex: 1 1 0;
+  height: calc(var(--u) * 13.8);
+  border: 0;
+  border-radius: calc(var(--u) * 2.6);
+  font-family: inherit;
+  font-size: var(--fs-btn);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-indent: 0.1em;
+  color: #fff8ea;
+  cursor: pointer;
+  position: relative;
+  transition:
+    filter 120ms ease,
+    transform 120ms ease;
+  box-shadow:
+    0 calc(var(--u) * 0.7) calc(var(--u) * 1.8) rgba(40, 26, 16, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 0 0 calc(var(--u) * 0.35) rgba(168, 132, 90, 0.85);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  cursor: default;
+  /* 禁用态仍要读得清：压暗但保留色相与边框，不用灰度全掉 */
+  filter: saturate(0.7) brightness(0.84);
+  opacity: 0.88;
+  box-shadow:
+    inset 0 0 0 calc(var(--u) * 0.35) rgba(168, 132, 90, 0.7);
+}
+
+.btn-discard {
+  background: linear-gradient(180deg, #d68a72 0%, #b06752 100%);
+}
+
+.btn-play {
+  background: linear-gradient(180deg, #84a077 0%, #62755a 100%);
+}
+
+.btn-restart {
+  background: linear-gradient(180deg, #dcbb7e 0%, #b08c4c 100%);
+  color: #3f3018;
+}
+
+.btn[hidden] {
+  display: none;
+}
+
+/* ============================================================
+   提示条
+   ============================================================ */
+
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--u) * 30);
+  transform: translate(-50%, calc(var(--u) * 1.5));
+  max-width: 88%;
+  padding: calc(var(--u) * 1.4) calc(var(--u) * 3);
+  border-radius: 999px;
+  background: rgba(58, 40, 28, 0.94);
+  border: 1px solid rgba(168, 132, 90, 0.5);
+  color: #fdf3e0;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+  z-index: 40;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ============================================================
+   装饰层：暗角 + 底部虚化前景叶（纯 CSS）
+   ============================================================ */
+
+/* ============================================================
+   装饰层：极轻的暗角
+   —— 第 3 步起背景自带窗边植物、白花与桌垫，CSS 的虚化前景叶和小雏菊
+      已经和背景图重复且会压住手牌，这里只保留暗角用于压住边缘对比。
+   ============================================================ */
+
+.decor {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.decor-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    128% 92% at 50% 34%,
+    rgba(0, 0, 0, 0) 62%,
+    rgba(74, 52, 30, 0.14) 100%
+  );
+}
+
+/* ============================================================
+   布局标注（仅验收用）
+   ============================================================ */
+
+body.guides .zone,
+body.guides .cat-frame {
+  outline: 1px dashed rgba(255, 90, 60, 0.85);
+  outline-offset: 1px;
+}
+
+body.guides .cat-safe-zone {
+  display: block;
+}
+
+body.guides [data-guide] {
+  position: relative;
+}
+
+body.guides [data-guide]::after {
+  content: attr(data-guide);
+  position: absolute;
+  top: 1px;
+  left: 3px;
+  z-index: 60;
+  font-size: 10px;
+  line-height: 1.2;
+  color: #ff5a3c;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* WebGL 不可用时的兜底提示 */
+.gl-fallback {
+  position: absolute;
+  inset: auto 16px 24px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(36, 27, 19, 0.86);
+  color: #f2ead9;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ============================================================
+   矮屏（如 360×640）：整体收紧，保证手牌与按钮完整可点
+   猫咪区高度仍由 --cat-h（CAT_BASE_Z 投影）决定，这里不设下限
+   ============================================================ */
+
+@media (max-height: 700px) {
+  .zone-hud {
+    height: calc(var(--u) * 9.6);
+  }
+  .play-plate {
+    height: calc(var(--u) * 10.6);
+  }
+  .play-cards .card {
+    width: calc(var(--u) * 5.8);
+  }
+  .btn {
+    height: calc(var(--u) * 12.4);
+  }
+  .deck-marker {
+    height: calc(var(--u) * 5.8);
+  }
+}
+
+/* ============================================================
+   减少动态效果
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "note": "由 tools/cat-export.mjs 从 assets/cats 的实际像素生成，请勿手改。aspect 为宽/高。",
+  "targetHeight": 640,
+  "cats": [
+    {
+      "id": "cloud",
+      "name": "云朵猫",
+      "pose": "坐姿（云绒无耳）",
+      "file": "cats/cat-cloud.png",
+      "aspect": 0.7609,
+      "source": {
+        "w": 1084,
+        "h": 1451,
+        "box": [
+          60,
+          118,
+          1000,
+          1354
+        ]
+      },
+      "display": {
+        "w": 487,
+        "h": 640
+      }
+    },
+    {
+      "id": "flame",
+      "name": "火焰猫",
+      "pose": "四足站立",
+      "file": "cats/cat-flame.png",
+      "aspect": 0.6859,
+      "source": {
+        "w": 1085,
+        "h": 1450,
+        "box": [
+          95,
+          92,
+          975,
+          1376
+        ]
+      },
+      "display": {
+        "w": 439,
+        "h": 640
+      }
+    },
+    {
+      "id": "forest",
+      "name": "森林猫",
+      "pose": "坐姿（枝角花冠）",
+      "file": "cats/cat-forest.png",
+      "aspect": 0.6469,
+      "source": {
+        "w": 1083,
+        "h": 1452,
+        "box": [
+          230,
+          200,
+          967,
+          1340
+        ]
+      },
+      "display": {
+        "w": 414,
+        "h": 640
+      }
+    },
+    {
+      "id": "ice-wing",
+      "name": "冰翼猫",
+      "pose": "飞扑展翼",
+      "file": "cats/cat-ice-wing.png",
+      "aspect": 0.9094,
+      "source": {
+        "w": 1084,
+        "h": 1451,
+        "box": [
+          125,
+          258,
+          1019,
+          1242
+        ]
+      },
+      "display": {
+        "w": 582,
+        "h": 640
+      }
+    },
+    {
+      "id": "moon-rabbit",
+      "name": "月兔耳猫",
+      "pose": "坐姿（长垂兔耳）",
+      "file": "cats/cat-moon-rabbit.png",
+      "aspect": 0.8016,
+      "source": {
+        "w": 1082,
+        "h": 1454,
+        "box": [
+          46,
+          110,
+          1053,
+          1366
+        ]
+      },
+      "display": {
+        "w": 513,
+        "h": 640
+      }
+    },
+    {
+      "id": "ripple",
+      "name": "水波猫",
+      "pose": "坐姿",
+      "file": "cats/cat-ripple.png",
+      "aspect": 0.8734,
+      "source": {
+        "w": 1089,
+        "h": 1444,
+        "box": [
+          154,
+          248,
+          1004,
+          1222
+        ]
+      },
+      "display": {
+        "w": 559,
+        "h": 640
+      }
+    },
+    {
+      "id": "sakura",
+      "name": "樱花猫",
+      "pose": "坐姿（花尾上翘）",
+      "file": "cats/cat-sakura.png",
+      "aspect": 0.7203,
+      "source": {
+        "w": 1089,
+        "h": 1444,
+        "box": [
+          50,
+          47,
+          1009,
+          1379
+        ]
+      },
+      "display": {
+        "w": 461,
+        "h": 640
+      }
+    }
+  ]
+}

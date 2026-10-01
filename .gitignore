@@ -1,0 +1,30 @@
+# 依赖与构建产物
+node_modules/
+dist/
+.vite/
+*.local
+
+# 验收截图与报告：体积大且可由 tools/ 重新生成，不入库
+shots/
+playtest/
+p2/
+prodtest/
+
+# 素材原图（体积大，保留在本地）
+# assets/cats/ 与 assets/background/ 是原图（约 11MB），不入库；
+# public/ 下是构建实际使用的派生图，必须入库。
+# 需要共享原图时把下面两行注释掉。
+assets/cats/
+assets/background/
+
+# 编辑器与系统
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+npm-debug.log*
+

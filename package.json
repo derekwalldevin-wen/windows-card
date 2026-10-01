@@ -1,0 +1,23 @@
+{
+  "name": "window-card-game",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "窗边牌局 - 手机竖屏优先的单人卡牌构筑小游戏",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/evaluate.test.ts tests/session.test.ts"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.3",
+    "@types/three": "0.186.0",
+    "typescript": "5.9.3",
+    "vite": "8.3.1"
+  }
+}

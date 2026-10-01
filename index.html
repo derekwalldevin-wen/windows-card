@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#241b13" />
+    <meta name="description" content="窗边牌局 - 竖屏卡牌构筑练习，静态窗边背景" />
+    <!-- 内联 SVG 图标：避免额外请求与 favicon 404 -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%239aa48c'/%3E%3Crect x='9' y='6' width='14' height='20' rx='2.5' fill='%23f4ecdc'/%3E%3Ccircle cx='16' cy='13' r='2.4' fill='%23cd7d63'/%3E%3C/svg%3E"
+    />
+    <title>窗边牌局</title>
+  </head>
+  <body>
+    <div id="app" class="app">
+      <!-- 舞台：手机竖屏时铺满；宽屏时收窄为居中竖屏区域。
+           背景图与全部界面元素都限定在舞台内，桌面端不会横向拉满整个窗口。 -->
+      <div id="stage" class="stage">
+        <!-- 第 3 步起背景改用静态图片（src/ui/background.ts 动态插入 .bg-layer）。
+             这个 canvas 是第 1~2 步 Three.js 场景留下的空节点，
+             已无引用、无上下文、无渲染循环；保留以便回退旧 3D，不参与本轮功能。 -->
+        <canvas id="scene" class="scene-canvas" aria-hidden="true" hidden></canvas>
+
+        <div id="ui" class="ui"></div>
+
+        <!-- 装饰层：极轻的暗角。纯 CSS，pointer-events: none -->
+        <div class="decor" aria-hidden="true">
+          <div class="decor-vignette"></div>
+        </div>
+      </div>
+    </div>
+
+    <noscript>
+      <p style="color: #f2ead9; font-family: sans-serif; padding: 24px">
+        本项目需要启用 JavaScript 才能运行。
+      </p>
+    </noscript>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

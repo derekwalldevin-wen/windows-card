@@ -1,0 +1,89 @@
+{
+  "note": "由 tools/measure-cat-feet.mjs 从 public/cats 的实际 alpha 底边测出，请勿手改。footXRatio = 脚底中心横向位置/裁切图宽；footLiftRatio = 脚底离裁切图底边的距离/图高（0 表示脚底正好在底边）。",
+  "feet": {
+    "cloud": {
+      "name": "云朵猫",
+      "aspect": 0.7609,
+      "footXRatio": 0.6088,
+      "footSpanRatio": 0.296,
+      "footLiftRatio": 0.9219,
+      "footDepthRatio": 0.9219,
+      "display": {
+        "w": 487,
+        "h": 640
+      }
+    },
+    "flame": {
+      "name": "火焰猫",
+      "aspect": 0.6859,
+      "footXRatio": 0.617,
+      "footSpanRatio": 0.144,
+      "footLiftRatio": 0.9343,
+      "footDepthRatio": 0.9343,
+      "display": {
+        "w": 439,
+        "h": 640
+      }
+    },
+    "forest": {
+      "name": "森林猫",
+      "aspect": 0.6469,
+      "footXRatio": 0.7082,
+      "footSpanRatio": 0.072,
+      "footLiftRatio": 0.3469,
+      "footDepthRatio": 0.3469,
+      "display": {
+        "w": 414,
+        "h": 640
+      }
+    },
+    "ice-wing": {
+      "name": "冰翼猫",
+      "aspect": 0.9094,
+      "footXRatio": 0.695,
+      "footSpanRatio": 0.103,
+      "footLiftRatio": 0.1516,
+      "footDepthRatio": 0.1516,
+      "display": {
+        "w": 582,
+        "h": 640
+      }
+    },
+    "moon-rabbit": {
+      "name": "月兔耳猫",
+      "aspect": 0.8016,
+      "footXRatio": 0.5633,
+      "footSpanRatio": 0.293,
+      "footLiftRatio": 0.9937,
+      "footDepthRatio": 0.9937,
+      "display": {
+        "w": 513,
+        "h": 640
+      }
+    },
+    "ripple": {
+      "name": "水波猫",
+      "aspect": 0.8734,
+      "footXRatio": 0.5201,
+      "footSpanRatio": 0.637,
+      "footLiftRatio": 0.9734,
+      "footDepthRatio": 0.9734,
+      "display": {
+        "w": 559,
+        "h": 640
+      }
+    },
+    "sakura": {
+      "name": "樱花猫",
+      "aspect": 0.7203,
+      "footXRatio": 0.6143,
+      "footSpanRatio": 0.243,
+      "footLiftRatio": 0.8766,
+      "footDepthRatio": 0.8766,
+      "display": {
+        "w": 461,
+        "h": 640
+      }
+    }
+  }
+}
