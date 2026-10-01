@@ -22,7 +22,19 @@ npm run typecheck  # tsc --noEmit（含 tests/）
 npm test           # node --test，共 39 项规则与状态机测试
 npm run build      # tsc --noEmit && vite build → dist/
 npm run preview    # 仅本机预览构建产物
+npm run pages:sim  # 把 dist/ 挂在 /windows-card/ 前缀下伺服，验证 Pages 产物
 ```
+
+**在线试玩**：<https://derekwalldevin-wen.github.io/windows-card/>
+
+部署由 `.github/workflows/deploy-pages.yml` 自动完成：推送 `main` →
+装依赖 → typecheck + 39 项单测 → 带 `BASE_PATH=/windows-card/` 构建 → 发布 Pages。
+单测不过就不会发布。
+
+> 站点挂在仓库子路径 `/windows-card/` 下，所以资源路径必须带这个前缀。
+> `vite.config.ts` 的 `base` 读 `BASE_PATH` 环境变量，本机默认 `/`；
+> 运行期读同一个值（`import.meta.env.BASE_URL`），不会出现
+> 「构建期一套路径、运行期又硬编码另一套」。
 
 URL 参数：`?seed=123` 换一副牌 · `?guides=1` 显示分区轮廓 · `?selfcheck=1` 输出实测数据 · `?cat=forest` 指定对手（仅验收用，正常游玩随机）
 
