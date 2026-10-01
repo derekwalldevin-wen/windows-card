@@ -22,7 +22,11 @@ function main(): void {
   // 但**不能只是把它藏起来就算完** —— 那样若之前创建过 Stage 实例，
   // 渲染循环与 GPU 资源仍会继续跑。本轮入口根本不再调用 createStage()，
   // 所以循环从一开始就没有启动；canvas 只是保留的空节点。
-  const background = createBackground('/backgrounds/cozy-window-table-background-v1.png', stage);
+  // 走 BASE_URL：Pages 部署在 /<repo>/ 下，写死 '/' 会 404
+  const background = createBackground(
+    `${import.meta.env.BASE_URL}backgrounds/cozy-window-table-background-v1.png`,
+    stage,
+  );
   const canvasSlot = document.getElementById('scene');
   stage.insertBefore(background.root, canvasSlot ?? ui);
   canvasSlot?.setAttribute('hidden', '');
